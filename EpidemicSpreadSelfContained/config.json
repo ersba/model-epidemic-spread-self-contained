@@ -1,0 +1,21 @@
+{
+	"globals":{
+		"deltaT": 1,
+		"steps": 10,
+		"pythonVisualization": true,
+		"console": false,
+		"output": "csv"
+	},
+	"layers":[
+		{
+			"name":"InfectionLayer"
+		}
+	],
+	"agents":[
+		{
+			"name": "Host",
+			"count": 1000,
+			"file": "Resources/hosts_data.csv"
+		}
+	]
+}
