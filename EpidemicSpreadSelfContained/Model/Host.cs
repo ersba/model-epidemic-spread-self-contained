@@ -89,9 +89,12 @@ namespace EpidemicSpreadSelfContained.Model
         
         private void InitStage()
         {
-            var p = tf.concat(new[] {_learnableParams.InitialInfectionRate, 1 - _learnableParams.InitialInfectionRate}, axis: 0);
+            var p = tf.stack(new[] {_learnableParams.InitialInfectionRate, 1 - _learnableParams.InitialInfectionRate});
             _tensorMyStage = tf.cast(GumbelSoftmax.Execute(p)[0], dtype: TF_DataType.TF_FLOAT) * 2; // Infected = 2
-            MyStage = (int) _tensorMyStage;
+            tf.print(_tensorMyStage);
+            _tensorMyStage = tf.squeeze(_tensorMyStage);
+            tf.print(_tensorMyStage);
+            MyStage = (int) tf.cast(_tensorMyStage, TF_DataType.TF_INT32);
         }
 
         private void InitTimeVariables()
@@ -183,7 +186,7 @@ namespace EpidemicSpreadSelfContained.Model
                     if (_infectionLayer.GetCurrentTick() >= _nextStageTime)
                     {
                         Random random = new Random();
-                        if (random.NextDouble() < (double) _learnableParams.MortalityRate)
+                        if (random.NextDouble() < (double) tf.cast(_learnableParams.MortalityRate, TF_DataType.TF_DOUBLE))
                         {
                             _tensorMyStage = tf.constant(Stage.Mortality) * _tensorMyStage / (int)Stage.Infected;
                             return (int)Stage.Mortality;
