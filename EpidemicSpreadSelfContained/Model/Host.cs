@@ -26,7 +26,7 @@ namespace EpidemicSpreadSelfContained.Model
         
         private int InfectedTime { get; set; }
         
-        public Tensor RecoveredOrDead { get; private set; }
+        // private Tensor RecoveredOrDead { get; set; }
         
         private int _meanInteractions;
         
@@ -46,7 +46,6 @@ namespace EpidemicSpreadSelfContained.Model
         public void Init(InfectionLayer layer)
         {
             _infectionLayer = layer;
-            _infectionLayer.Insert(this);
             _infectionLayer.ContactEnvironment.Insert(this);
             _infinityTime = Params.Steps + 1;
             _learnableParams = LearnableParams.Instance;
@@ -58,7 +57,9 @@ namespace EpidemicSpreadSelfContained.Model
 
         public void Tick()
         {
-            RecoveredOrDead = _tensorMyStage * (MyStage == (int)Stage.Infected) * (_nextStageTime <= _infectionLayer.GetCurrentTick()) / (float)Stage.Infected;
+            // RecoveredOrDead = _tensorMyStage * (MyStage == (int)Stage.Infected) * (_nextStageTime <= _infectionLayer.GetCurrentTick()) / (float)Stage.Infected;
+            // _infectionLayer.Insert(Index, RecoveredOrDead);
+            _infectionLayer.Insert(Index, _tensorMyStage, tf.constant(_nextStageTime));
             _exposedToday = false;
             Interact();
             Progress();
@@ -154,7 +155,7 @@ namespace EpidemicSpreadSelfContained.Model
                                                                          + Params.ExposedToInfectedTime);
             } else if (_nextStageTime == _infectionLayer.GetCurrentTick())
             {
-                if (MyStage == (int) Stage.Exposed)
+                if (MyStage == (int)Stage.Exposed)
                     _nextStageTime = (int) (_infectionLayer.GetCurrentTick()
                                             + Params.InfectedToRecoveredTime);
                 else
@@ -166,7 +167,7 @@ namespace EpidemicSpreadSelfContained.Model
         {
             if (_exposedToday)
             {
-                _tensorMyStage = tf.constant(Stage.Exposed);
+                _tensorMyStage = tf.constant((float)Stage.Exposed);
                 return (int)Stage.Exposed;
             }
             switch (MyStage)
@@ -176,20 +177,20 @@ namespace EpidemicSpreadSelfContained.Model
                 case (int)Stage.Exposed:
                     if (_infectionLayer.GetCurrentTick() >= _nextStageTime)
                     {
-                        _tensorMyStage = tf.constant(Stage.Infected) * _tensorMyStage / (int)Stage.Exposed; 
+                        _tensorMyStage = tf.constant((float)Stage.Infected) * _tensorMyStage / (float)Stage.Exposed; 
                         return (int)Stage.Infected;
                     }
-                    return (int) Stage.Exposed;
+                    return (int)Stage.Exposed;
                 case (int)Stage.Infected:
                     if (_infectionLayer.GetCurrentTick() >= _nextStageTime)
                     {
                         Random random = new Random();
                         if (random.NextDouble() < (double) tf.cast(_learnableParams.MortalityRate, TF_DataType.TF_DOUBLE))
                         {
-                            _tensorMyStage = tf.constant((int)Stage.Mortality) * _tensorMyStage / (int)Stage.Infected;
+                            _tensorMyStage = tf.constant((float)Stage.Mortality) * _tensorMyStage / (float)Stage.Infected;
                             return (int)Stage.Mortality;
                         }
-                        _tensorMyStage = tf.constant((int)Stage.Recovered) * _tensorMyStage / (int)Stage.Infected;
+                        _tensorMyStage = tf.constant((float)Stage.Recovered) * _tensorMyStage / (float)Stage.Infected;
                         return (int)Stage.Recovered;
                     }
                     return (int)Stage.Infected;

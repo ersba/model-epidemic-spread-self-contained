@@ -20,7 +20,7 @@ namespace EpidemicSpreadSelfContained.Model
         
         public void ReadCSV()
         {
-            foreach (var line in File.ReadAllLines("Resources/contact_edges.csv"))
+            foreach (var line in File.ReadAllLines(Params.ContactEdgesPath))
             {
                 var splitLine = line.Split(',');
                 int hostIndex0 = int.Parse(splitLine[0]);

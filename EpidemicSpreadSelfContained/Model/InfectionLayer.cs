@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Mars.Components.Layers;
 using Mars.Core.Data;
 using Mars.Interfaces.Data;
@@ -25,9 +26,11 @@ namespace EpidemicSpreadSelfContained.Model
 
         private Tensor _infectedTime;
 
-        private Tensor _nextStageTimes;
+        private Tensor[] _nextStageTimes;
+        
+        private Tensor[] _stages;
 
-        private Host[] _hosts;
+        // private Tensor[] _hostsRecoveredOrDead;
 
 
         public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle,
@@ -36,9 +39,12 @@ namespace EpidemicSpreadSelfContained.Model
             var initiated = base.InitLayer(layerInitData, registerAgentHandle, unregisterAgentHandle);
             Host.SetLamdaGammaIntegrals();
             ContactEnvironment = new ContactGraphEnvironment();
-            _hosts = new Host[Params.AgentCount];
+            // _hostsRecoveredOrDead = new Tensor[Params.AgentCount];
+            _stages = new Tensor[Params.AgentCount];
+            _nextStageTimes = new Tensor[Params.AgentCount];
             AgentManager = layerInitData.Container.Resolve<IAgentManager>();
             AgentManager.Spawn<Host, InfectionLayer>().ToList();
+            ContactEnvironment.ReadCSV();
             _learnableParams = LearnableParams.Instance;
             Deaths = tf.constant(0f);
             Stages = tf.ones(new Shape(Params.AgentCount, 1));
@@ -55,19 +61,32 @@ namespace EpidemicSpreadSelfContained.Model
         
         public void PostTick()
         {
-            var recoveredAndDead = tf.constant(0f);
             
-            for (int i = 0; i < Params.AgentCount; i++)
-            {
-                recoveredAndDead += _hosts[i].RecoveredOrDead;
-            }
+            // for (int i = 0; i < Params.AgentCount; i++)
+            // {
+            //     recoveredAndDead += _hosts[i].RecoveredOrDead;
+            // }
+
+            var stages = tf.stack(_stages);
+            var recoveredAndDead= stages * tf.equal(tf.cast(stages, TF_DataType.TF_INT32), 
+                tf.constant(Stage.Infected, TF_DataType.TF_INT32)) * tf.less_equal(_nextStageTimes, 
+                (int)Context.CurrentTick) / (float)Stage.Infected;
             
-            Deaths += recoveredAndDead * _learnableParams.MortalityRate;
+            Deaths += tf.reduce_sum(recoveredAndDead) * _learnableParams.MortalityRate;
+            
+            // var recoveredAndDead = tf.stack(_hostsRecoveredOrDead); 
+            // Deaths += recoveredAndDead * _learnableParams.MortalityRate;
         }
 
-        public void Insert(Host host)
+        public void Insert(int index, Tensor stage, Tensor nextStageTime)
         {
-            _hosts[host.Index] = host;
+            _stages[index] = stage;
+            _nextStageTimes[index] = nextStageTime;
         }
+        
+        // public void Insert(int index, Tensor recoveredOrDead)
+        // {
+        //     _hostsRecoveredOrDead[index] = recoveredOrDead;
+        // }
     }
 }

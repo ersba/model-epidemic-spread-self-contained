@@ -14,10 +14,10 @@ namespace EpidemicSpreadSelfContained
     {
         private static void Main()
         {
-            // var calibNn = new SimpleCalibNn();
-            // calibNn.Train(5);
+            var calibNn = new SimpleCalibNn();
+            calibNn.Train(50);
 
-            EpidemicSpreadSimulation();
+            // EpidemicSpreadSimulation();
         }
         public static Tensor EpidemicSpreadSimulation(bool train = false)
         {
