@@ -23,10 +23,8 @@ namespace EpidemicSpreadSelfContained.Model
         private Tensor _tensorMyStage;
         
         private LearnableParams _learnableParams;
-        
-        private int InfectedTime { get; set; }
-        
-        // private Tensor RecoveredOrDead { get; set; }
+
+        private int _infectedTime;
         
         private int _meanInteractions;
         
@@ -76,7 +74,7 @@ namespace EpidemicSpreadSelfContained.Model
                         var bN = Params.EdgeAttribute;
                         var integral =
                             _lamdaGammaIntegrals[
-                                Math.Abs(_infectionLayer.GetCurrentTick() - host.InfectedTime)];
+                                Math.Abs(_infectionLayer.GetCurrentTick() - host._infectedTime)];
                         var result = Params.R0Value * _susceptibility * infector * bN * integral / _meanInteractions;
 
                         Random random = new Random();
@@ -101,23 +99,23 @@ namespace EpidemicSpreadSelfContained.Model
             switch (MyStage)
             {   
                 case (int) Stage.Susceptible:
-                    InfectedTime = _infinityTime;
+                    _infectedTime = _infinityTime;
                     _nextStageTime = _infinityTime;
                     break;
                 case (int)Stage.Exposed:
-                    InfectedTime = 0;
+                    _infectedTime = 0;
                     _nextStageTime = Params.Steps + Params.ExposedToInfectedTime;
                     break;
                 case (int)Stage.Infected:
-                    InfectedTime = 1 - Params.ExposedToInfectedTime;
+                    _infectedTime = 1 - Params.ExposedToInfectedTime;
                     _nextStageTime = 1 + Params.InfectedToRecoveredTime;
                     break;
                 case (int)Stage.Recovered:
-                    InfectedTime = _infinityTime;
+                    _infectedTime = _infinityTime;
                     _nextStageTime = _infinityTime;
                     break;
                 case (int)Stage.Mortality:
-                    InfectedTime = _infinityTime;
+                    _infectedTime = _infinityTime;
                     _nextStageTime = _infinityTime;
                     break;
             }
@@ -144,7 +142,7 @@ namespace EpidemicSpreadSelfContained.Model
             var nextStage = UpdateStage();
             UpdateNextStageTime();
             MyStage = nextStage;
-            if (_exposedToday) InfectedTime = (int)_infectionLayer.GetCurrentTick();
+            if (_exposedToday) _infectedTime = (int)_infectionLayer.GetCurrentTick();
         }
         
         private void UpdateNextStageTime()
