@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "model-epidemic-spread-self-contained", "model-epidemic-spread-self-contained\model-epidemic-spread-self-contained.csproj", "{4D5E2A15-3C45-4E4E-A8F9-61B94EED8D5A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EpidemicSpreadSelfContained", "EpidemicSpreadSelfContained\EpidemicSpreadSelfContained.csproj", "{4D5E2A15-3C45-4E4E-A8F9-61B94EED8D5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
